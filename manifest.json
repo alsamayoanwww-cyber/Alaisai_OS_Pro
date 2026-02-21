@@ -1,0 +1,15 @@
+{
+  "name": "Alaisai Pro Ultra 2026",
+  "short_name": "Alaisai OS",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#4cc9f0",
+  "icons": [
+    {
+      "src": "assets/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
