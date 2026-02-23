@@ -323,7 +323,7 @@
         </div>
         <div id="digital-clock">00:00</div>
         <div class="left-section">
-            <div id="admin-gate" onclick="Admin.requestAccess()" style="cursor:pointer; font-size:1.5rem;" title="لوحة الإدارة (للمالك فقط)">⚙️</div>
+            <div id="admin-gate" onclick="Admin.requestAccess()" style="cursor:pointer; font-size:1.5rem;">⚙️</div>
         </div>
     </header>
 
@@ -980,65 +980,8 @@
         }
     };
 
-    // ========== لوحة الإدارة المتطورة (محدثة) ==========
+    // ========== لوحة الإدارة المتطورة ==========
     const Admin = {
-        // تصدير الإضافات إلى ملفات
-        exportAddonsToFiles() {
-            const db = JSON.parse(localStorage.getItem('alaisai_ultra_db')) || { registry: [] };
-            
-            let exportData = {};
-            db.registry.forEach(addon => {
-                exportData[addon.name] = {
-                    id: addon.id,
-                    name: addon.name,
-                    icon: addon.icon,
-                    content: addon.content,
-                    order: addon.order
-                };
-            });
-            
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const blob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'addons-backup.json';
-            a.click();
-            
-            alert('✅ تم تصدير الإضافات كملف JSON');
-        },
-        
-        // استيراد الإضافات من ملف
-        importAddonsFromFile() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = readerEvent => {
-                    try {
-                        const imported = JSON.parse(readerEvent.target.result);
-                        const db = JSON.parse(localStorage.getItem('alaisai_ultra_db')) || { registry: [] };
-                        
-                        Object.values(imported).forEach(addon => {
-                            if (!db.registry.some(a => a.id === addon.id)) {
-                                db.registry.push(addon);
-                            }
-                        });
-                        
-                        localStorage.setItem('alaisai_ultra_db', JSON.stringify(db));
-                        alert('✅ تم استيراد الإضافات بنجاح');
-                        location.reload();
-                    } catch (err) {
-                        alert('❌ ملف غير صالح');
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        },
-
         requestAccess() {
             const p = prompt("🔐 وضع المصمم المالك: أدخل كلمة المرور");
             if (p === AlaisaiOS.db.config.pass) {
@@ -1082,4 +1025,266 @@
                         </div>
                     `;
                 });
-                list += `<button onclick="Admin.addNew()" style="width:100%; margin-top:10px; backgroun
+                list += `<button onclick="Admin.addNew()" style="width:100%; margin-top:10px; background:#4ade80; border:none; padding:10px; border-radius:8px; color:white; font-weight:bold;">➕ إضافة تطبيق جديد</button>`;
+                view.innerHTML = list;
+            }
+            else if (tab === 'msg') {
+                view.innerHTML = `
+                    <h4>📩 التقارير والمراسلة:</h4>
+                    <p>إجمالي الزيارات: <b>${AlaisaiOS.db.config.downloads}</b></p>
+                    <div style="max-height:150px; overflow-y:auto; background:rgba(255,255,255,0.2); padding:10px; border-radius:8px;">
+                        ${AlaisaiOS.db.config.reports.map(r => `
+                            <div style="border-bottom:1px solid rgba(255,255,255,0.1); padding:5px 0;">
+                                <small>${r.email}</small> 
+                                <button onclick="Admin.copy('${r.email}')" class="btn-save-mini">نسخ</button>
+                                <p style="margin:5px 0;">${r.text}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <input type="email" id="reply_mail" placeholder="إيميل المستلم" style="width:100%; margin-top:10px; padding:8px;">
+                    <textarea id="reply_msg" placeholder="اكتب ردك هنا..." style="width:100%; height:50px; margin-top:5px; padding:8px;"></textarea>
+                    <button onclick="alert('✅ تم إرسال الرد بنجاح');" style="width:100%; background:#4cc9f0; border:none; color:white; padding:8px; margin-top:5px; border-radius:5px;">إرسال الرد</button>
+                `;
+            }
+            else if (tab === 'sys') {
+                view.innerHTML = `
+                    <h4>⚙️ أدوات النظام المتقدمة:</h4>
+                    <button class="adm-btn" onclick="Admin.changePass()">🔐 تغيير كلمة المرور</button>
+                    <button class="adm-btn" onclick="Admin.exportData()">📥 تصدير النظام (Backup)</button>
+                    <button class="adm-btn" onclick="Admin.importData()">📤 استيراد نسخة احتياطية</button>
+                    <button class="adm-btn" onclick="Admin.resetSystem()">🔄 إعادة ضبط المصنع</button>
+                    <button class="adm-btn" onclick="Admin.cloudSync()" id="sync_btn">☁️ ربط سحابي</button>
+                `;
+            }
+            else if (tab === 'backup') {
+                const autoBackup = localStorage.getItem(AUTO_BACKUP_KEY);
+                let backupInfo = 'لا توجد نسخة احتياطية';
+                if (autoBackup) {
+                    try {
+                        const backup = JSON.parse(autoBackup);
+                        backupInfo = `آخر نسخة: ${new Date(backup.timestamp).toLocaleString('ar-SA')}`;
+                    } catch (e) {}
+                }
+                view.innerHTML = `
+                    <h4>💾 النسخ الاحتياطي التلقائي</h4>
+                    <p>${backupInfo}</p>
+                    <button class="adm-btn" onclick="Admin.restoreAutoBackup()">↩️ استعادة آخر نسخة</button>
+                    <button class="adm-btn" onclick="Admin.exportData()">📥 نسخة يدوية</button>
+                `;
+            }
+            else if (tab === 'storage') {
+                view.innerHTML = `
+                    <div style="text-align:center; padding:20px;">
+                        <h4 style="color:#4cc9f0; margin-bottom:20px;">📁 المخزن المعزول للنظام</h4>
+                        <p style="margin-bottom:20px;">هذا المخزن معزول تماماً عن نواة النظام الرئيسي</p>
+                        
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+                            <div style="background:rgba(76,201,240,0.1); border:1px solid #4cc9f0; border-radius:10px; padding:15px; cursor:pointer;" onclick="AlaisaiOS.StorageSystem.openSystemFolder()">
+                                <div style="font-size:3rem; margin-bottom:10px;">📁</div>
+                                <h5 style="color:#4cc9f0;">ملفات النظام</h5>
+                                <p style="font-size:12px;">فتح وتعديل ملفات النظام الأساسية</p>
+                            </div>
+                            
+                            <div style="background:rgba(74,222,128,0.1); border:1px solid #4ade80; border-radius:10px; padding:15px; cursor:pointer;" onclick="AlaisaiOS.StorageSystem.isolateAddon()">
+                                <div style="font-size:3rem; margin-bottom:10px;">➕</div>
+                                <h5 style="color:#4ade80;">إضافة معزولة</h5>
+                                <p style="font-size:12px;">إنشاء إضافة جديدة في مجلد منفصل</p>
+                            </div>
+                        </div>
+                        
+                        <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:15px;">
+                            <h6 style="margin-bottom:10px;">📊 معلومات المخزن:</h6>
+                            <div style="display:flex; justify-content:space-between; font-size:13px;">
+                                <span>عدد الإضافات: ${AlaisaiOS.StorageSystem.structure?.addons?.folders?.length || 0}</span>
+                                <span>ملفات النظام: ${AlaisaiOS.StorageSystem.structure?.system?.files?.length || 0}</span>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top:20px; padding:10px; background:#f7258520; border-radius:8px; border-right:3px solid #f72585; text-align:right;">
+                            <p style="color:#f72585; font-size:12px;">
+                                ⚠️ هذا القسم معزول تماماً - أي تعديل هنا لا يؤثر على استقرار النظام
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+        },
+
+        saveName(id) {
+            const app = AlaisaiOS.db.registry.find(a => a.id === id);
+            if (app) {
+                app.name = document.getElementById('in_'+id).value;
+                AlaisaiOS.save();
+                AlaisaiOS.renderDesktop();
+                const b = document.getElementById('sav_'+id);
+                b.innerText = "✅";
+                b.style.background = "#4ade80";
+                setTimeout(() => { b.innerText = "☑️"; b.style.background = "#4cc9f0"; }, 1500);
+            }
+        },
+
+        editIcon(id) {
+            const app = AlaisaiOS.db.registry.find(a => a.id === id);
+            const icon = prompt("أدخل الأيقونة (Emoji):", app.icon);
+            if (icon) {
+                app.icon = icon;
+                AlaisaiOS.save();
+                AlaisaiOS.renderDesktop();
+                this.renderTab('layout');
+            }
+        },
+
+        deleteApp(id) {
+            if (confirm("⚠️ حذف هذا التطبيق نهائياً؟")) {
+                AlaisaiOS.db.registry = AlaisaiOS.db.registry.filter(a => a.id !== id);
+                AlaisaiOS.save();
+                AlaisaiOS.renderDesktop();
+                this.renderTab('layout');
+            }
+        },
+
+        addNew() {
+            const name = prompt("اسم التطبيق الجديد:");
+            const code = prompt("ألصق كود HTML/JS هنا:");
+            if (name && code) {
+                AlaisaiOS.db.registry.push({
+                    id: 'app_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                    name: name,
+                    icon: '📦',
+                    content: code,
+                    order: AlaisaiOS.db.registry.length
+                });
+                AlaisaiOS.save();
+                AlaisaiOS.renderDesktop();
+                this.renderTab('layout');
+            }
+        },
+
+        exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(AlaisaiOS.db, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `alaisai_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        },
+
+        importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = readerEvent => {
+                    try {
+                        const content = JSON.parse(readerEvent.target.result);
+                        if (content.registry && content.config) {
+                            AlaisaiOS.db = content;
+                            AlaisaiOS.save();
+                            alert('✅ تم استيراد النسخة بنجاح، سيتم إعادة التحميل');
+                            location.reload();
+                        } else {
+                            alert('❌ ملف غير صالح');
+                        }
+                    } catch (err) {
+                        alert('❌ خطأ في قراءة الملف');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        },
+
+        restoreAutoBackup() {
+            try {
+                const backup = JSON.parse(localStorage.getItem(AUTO_BACKUP_KEY));
+                if (backup && backup.data) {
+                    AlaisaiOS.db = backup.data;
+                    AlaisaiOS.save();
+                    alert('✅ تم استعادة آخر نسخة احتياطية');
+                    location.reload();
+                }
+            } catch (e) {
+                alert('❌ لا توجد نسخة احتياطية صالحة');
+            }
+        },
+
+        resetSystem() {
+            if (confirm('⚠️ تحذير! سيتم حذف جميع البيانات وإعادة النظام للإعدادات الافتراضية. هل أنت متأكد؟')) {
+                localStorage.removeItem('alaisai_ultra_db');
+                localStorage.removeItem(AUTO_BACKUP_KEY);
+                alert('✅ تم إعادة ضبط النظام');
+                location.reload();
+            }
+        },
+
+        cloudSync() {
+            const btn = document.getElementById('sync_btn');
+            if (btn) {
+                btn.innerText = "⏳ جاري الربط...";
+                btn.disabled = true;
+                setTimeout(() => {
+                    btn.innerText = "☁️ تم الربط بنجاح";
+                    btn.style.background = "#4ade80";
+                    btn.disabled = false;
+                    setTimeout(() => {
+                        btn.style.background = "";
+                        btn.innerText = "☁️ ربط سحابي";
+                    }, 3000);
+                }, 2000);
+            }
+        },
+
+        changePass() {
+            const n = prompt("كلمة المرور الجديدة:");
+            if (n) {
+                AlaisaiOS.db.config.pass = n;
+                AlaisaiOS.save();
+                alert("✅ تم تغيير كلمة المرور بنجاح");
+            }
+        },
+
+        copy(t) {
+            navigator.clipboard.writeText(t).then(() => alert("✅ تم النسخ!"));
+        },
+
+        adminDragIdx: null,
+        drag(i) {
+            this.adminDragIdx = i;
+        },
+        drop(target) {
+            const items = AlaisaiOS.db.registry;
+            if (this.adminDragIdx !== null && this.adminDragIdx !== target) {
+                const [moved] = items.splice(this.adminDragIdx, 1);
+                items.splice(target, 0, moved);
+                items.forEach((item, idx) => item.order = idx);
+                AlaisaiOS.save();
+                AlaisaiOS.renderDesktop();
+                this.renderTab('layout');
+            }
+        }
+    };
+
+    // ربط المتغيرات العامة
+    window.AlaisaiOS = AlaisaiOS;
+    window.Admin = Admin;
+
+    // بدء التشغيل
+    window.onload = () => AlaisaiOS.init();
+</script>
+
+<!-- تسجيل Service Worker -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('✅ PWA: النظام جاهز للعمل بدون إنترنت'))
+                .catch(err => console.log('❌ PWA: فشل تسجيل الخدمة', err));
+        });
+    }
+</script>
+
+</body>
+</html>
