@@ -1,4 +1,4 @@
-/**
+v/**
  * Alaisai Core - نواة النظام المركزية
  * @version 2.0.0
  */
@@ -112,9 +112,13 @@ const AlaisaiCore = {
     }
 };
 
-// تسجيل بدء التشغيل
+//تسجيل بدء التشغيل
 window._alaisai_start_time = Date.now();
 
 // تصدير للنظام
-window.AlaisaiCore = AlaisaiCore;
+indow.AlaisaiCore = AlaisaiCore;
+// تحميل مدير الإضافات
+if (window.AlaisaiAddons) {
+    AlaisaiAddons.init();
+}
 console.log('✨ Alaisai Core جاهز للعمل');// Alaisai Core v2.0.0
