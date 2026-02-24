@@ -1,6 +1,6 @@
-// ==================== file-manager.js (الإصدار 5.0.0 النهائي مع OPFS + GitHub) ====================
+// ==================== file-manager.js (Ø§ÙØ¥ØµØ¯Ø§Ø± 5.0.0 Ø§ÙÙÙØ§Ø¦Ù ÙØ¹ OPFS + GitHub) ====================
 /**
- * Alaisai File Manager - مدير الملفات الحقيقي (OPFS + GitHub)
+ * Alaisai File Manager - ÙØ¯ÙØ± Ø§ÙÙÙÙØ§Øª Ø§ÙØ­ÙÙÙÙ (OPFS + GitHub)
  * @version 5.0.0
  */
 
@@ -23,15 +23,15 @@ const AlaisaiFileManager = {
         if (this.opfsRoot) return this.opfsRoot;
         try {
             this.opfsRoot = await navigator.storage.getDirectory();
-            console.log('✅ OPFS initialized');
-            // إنشاء المجلدات الأساسية
+            console.log('â OPFS initialized');
+            // Ø¥ÙØ´Ø§Ø¡ Ø§ÙÙØ¬ÙØ¯Ø§Øª Ø§ÙØ£Ø³Ø§Ø³ÙØ©
             await this.createOPFSDirectory('system');
             await this.createOPFSDirectory('addons');
-            // تهيئة ملفات النظام الأساسية إذا لم تكن موجودة
+            // ØªÙÙØ¦Ø© ÙÙÙØ§Øª Ø§ÙÙØ¸Ø§Ù Ø§ÙØ£Ø³Ø§Ø³ÙØ© Ø¥Ø°Ø§ ÙÙ ØªÙÙ ÙÙØ¬ÙØ¯Ø©
             await this.initializeSystemFiles();
             return this.opfsRoot;
         } catch (err) {
-            console.error('❌ OPFS initialization failed:', err);
+            console.error('â OPFS initialization failed:', err);
             return null;
         }
     },
@@ -39,16 +39,16 @@ const AlaisaiFileManager = {
     async createOPFSDirectory(dirName) {
         try {
             const dirHandle = await this.opfsRoot.getDirectoryHandle(dirName, { create: true });
-            console.log(`📁 Created directory: ${dirName}`);
+            console.log(`ð Created directory: ${dirName}`);
             return dirHandle;
         } catch (err) {
-            console.error(`❌ Failed to create directory ${dirName}:`, err);
+            console.error(`â Failed to create directory ${dirName}:`, err);
             return null;
         }
     },
 
     async initializeSystemFiles() {
-        // قائمة بملفات النظام الأساسية التي نريد نسخها إلى OPFS
+        // ÙØ§Ø¦ÙØ© Ø¨ÙÙÙØ§Øª Ø§ÙÙØ¸Ø§Ù Ø§ÙØ£Ø³Ø§Ø³ÙØ© Ø§ÙØªÙ ÙØ±ÙØ¯ ÙØ³Ø®ÙØ§ Ø¥ÙÙ OPFS
         const systemFiles = [
             'system/core/core.js',
             'system/core/database.js',
@@ -65,19 +65,19 @@ const AlaisaiFileManager = {
         ];
         for (const filePath of systemFiles) {
             try {
-                // تحقق إذا كان الملف موجوداً بالفعل في OPFS
+                // ØªØ­ÙÙ Ø¥Ø°Ø§ ÙØ§Ù Ø§ÙÙÙÙ ÙÙØ¬ÙØ¯Ø§Ù Ø¨Ø§ÙÙØ¹Ù ÙÙ OPFS
                 const exists = await this.readOPFSFile(filePath).catch(() => null);
                 if (!exists) {
-                    // جلب الملف من المسار الأصلي
+                    // Ø¬ÙØ¨ Ø§ÙÙÙÙ ÙÙ Ø§ÙÙØ³Ø§Ø± Ø§ÙØ£ØµÙÙ
                     const response = await fetch(filePath);
                     if (response.ok) {
                         const content = await response.text();
                         await this.writeOPFSFile(filePath, content);
-                        console.log(`✅ Copied system file: ${filePath}`);
+                        console.log(`â Copied system file: ${filePath}`);
                     }
                 }
             } catch (err) {
-                console.warn(`⚠️ Could not copy system file ${filePath}:`, err);
+                console.warn(`â ï¸ Could not copy system file ${filePath}:`, err);
             }
         }
     },
@@ -103,7 +103,7 @@ const AlaisaiFileManager = {
             }
             return entries;
         } catch (err) {
-            console.error('❌ Failed to read OPFS directory:', err);
+            console.error('â Failed to read OPFS directory:', err);
             return [];
         }
     },
@@ -122,10 +122,10 @@ const AlaisaiFileManager = {
             const writable = await fileHandle.createWritable();
             await writable.write(content);
             await writable.close();
-            console.log(`✅ File written to OPFS: ${filePath}`);
+            console.log(`â File written to OPFS: ${filePath}`);
             return true;
         } catch (err) {
-            console.error(`❌ Failed to write OPFS file ${filePath}:`, err);
+            console.error(`â Failed to write OPFS file ${filePath}:`, err);
             return false;
         }
     },
@@ -145,7 +145,7 @@ const AlaisaiFileManager = {
             const content = await file.text();
             return { content, handle: fileHandle };
         } catch (err) {
-            console.error(`❌ Failed to read OPFS file ${filePath}:`, err);
+            console.error(`â Failed to read OPFS file ${filePath}:`, err);
             return null;
         }
     },
@@ -161,15 +161,15 @@ const AlaisaiFileManager = {
                 currentDir = await currentDir.getDirectoryHandle(dirPart);
             }
             await currentDir.removeEntry(fileName);
-            console.log(`✅ Deleted OPFS file: ${filePath}`);
+            console.log(`â Deleted OPFS file: ${filePath}`);
             return true;
         } catch (err) {
-            console.error(`❌ Failed to delete OPFS file ${filePath}:`, err);
+            console.error(`â Failed to delete OPFS file ${filePath}:`, err);
             return false;
         }
     },
 
-    // دوال لفتح المجلدات مباشرة من المخزن المحلي
+    // Ø¯ÙØ§Ù ÙÙØªØ­ Ø§ÙÙØ¬ÙØ¯Ø§Øª ÙØ¨Ø§Ø´Ø±Ø© ÙÙ Ø§ÙÙØ®Ø²Ù Ø§ÙÙØ­ÙÙ
     openSystemFolder() {
         this.openUI('system', 'local');
     },
@@ -197,7 +197,7 @@ const AlaisaiFileManager = {
                 sha: item.sha
             }));
         } catch (e) {
-            console.error('❌ Failed to fetch GitHub contents:', e);
+            console.error('â Failed to fetch GitHub contents:', e);
             return [];
         }
     },
@@ -216,14 +216,14 @@ const AlaisaiFileManager = {
             }
             return null;
         } catch (e) {
-            console.error('❌ Failed to read GitHub file:', e);
+            console.error('â Failed to read GitHub file:', e);
             return null;
         }
     },
 
     async saveGitHubFile(path, content, message = 'Update via Alaisai File Manager') {
         if (!this.token) {
-            alert('تحتاج إلى إعداد توكن GitHub أولاً');
+            alert('ØªØ­ØªØ§Ø¬ Ø¥ÙÙ Ø¥Ø¹Ø¯Ø§Ø¯ ØªÙÙÙ GitHub Ø£ÙÙØ§Ù');
             return false;
         }
         let sha = null;
@@ -248,11 +248,11 @@ const AlaisaiFileManager = {
                 body: JSON.stringify(body)
             });
             if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
-            if (window.AlaisaiUI) AlaisaiUI.notifications.success('✅ تم حفظ الملف بنجاح على GitHub');
+            if (window.AlaisaiUI) AlaisaiUI.notifications.success('â ØªÙ Ø­ÙØ¸ Ø§ÙÙÙÙ Ø¨ÙØ¬Ø§Ø­ Ø¹ÙÙ GitHub');
             return true;
         } catch (e) {
-            console.error('❌ Failed to save GitHub file:', e);
-            if (window.AlaisaiUI) AlaisaiUI.notifications.error('❌ فشل حفظ الملف على GitHub');
+            console.error('â Failed to save GitHub file:', e);
+            if (window.AlaisaiUI) AlaisaiUI.notifications.error('â ÙØ´Ù Ø­ÙØ¸ Ø§ÙÙÙÙ Ø¹ÙÙ GitHub');
             return false;
         }
     },
@@ -265,7 +265,7 @@ const AlaisaiFileManager = {
         if (savedToken) this.token = savedToken;
         const content = await this.renderExplorer(path, source);
         AlaisaiOS.openApp({
-            name: source === 'github' ? '📁 مستكشف GitHub' : '📁 المخزن المحلي',
+            name: source === 'github' ? 'ð ÙØ³ØªÙØ´Ù GitHub' : 'ð Ø§ÙÙØ®Ø²Ù Ø§ÙÙØ­ÙÙ',
             content: content
         });
         setTimeout(() => this.bindEvents(), 100);
@@ -276,34 +276,34 @@ const AlaisaiFileManager = {
         let title = '';
         if (source === 'github') {
             files = await this.listGitHubContents(path);
-            title = '📁 مستكشف GitHub';
+            title = 'ð ÙØ³ØªÙØ´Ù GitHub';
         } else {
             files = await this.readOPFSDirectory(path);
-            title = '📁 المخزن المحلي (OPFS)';
+            title = 'ð Ø§ÙÙØ®Ø²Ù Ø§ÙÙØ­ÙÙ (OPFS)';
         }
         const pathParts = path.split('/').filter(p => p);
         let filesHtml = '';
         if (files.length === 0) {
-            filesHtml = '<div style="padding:20px; text-align:center;">📭 لا توجد ملفات</div>';
+            filesHtml = '<div style="padding:20px; text-align:center;">ð­ ÙØ§ ØªÙØ¬Ø¯ ÙÙÙØ§Øª</div>';
         } else {
             filesHtml = files.map(f => `
                 <div class="file-item" data-path="${f.path}" data-type="${f.type}">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <span>${f.type === 'dir' ? '📁' : '📄'}</span>
+                        <span>${f.type === 'dir' ? 'ð' : 'ð'}</span>
                         <span style="color:var(--text-primary);">${f.name}</span>
                         <span style="color:var(--text-muted); font-size:12px;">${f.type === 'file' ? Math.ceil(f.size/1024) + 'KB' : ''}</span>
                     </div>
                     <div class="file-actions">
-                        ${f.type === 'file' ? `<button class="file-btn view-btn" data-path="${f.path}">👁️ عرض</button>` : ''}
-                        ${f.type === 'dir' ? `<button class="file-btn open-btn" data-path="${f.path}">📂 فتح</button>` : ''}
-                        <button class="file-btn delete-btn" data-path="${f.path}">🗑️</button>
+                        ${f.type === 'file' ? `<button class="file-btn view-btn" data-path="${f.path}">ðï¸ Ø¹Ø±Ø¶</button>` : ''}
+                        ${f.type === 'dir' ? `<button class="file-btn open-btn" data-path="${f.path}">ð ÙØªØ­</button>` : ''}
+                        <button class="file-btn delete-btn" data-path="${f.path}">ðï¸</button>
                     </div>
                 </div>
             `).join('');
         }
         const breadcrumb = `
             <div style="display:flex; gap:5px; margin-bottom:15px; flex-wrap:wrap;">
-                <button class="adm-btn" data-path="">🏠 الرئيسية</button>
+                <button class="adm-btn" data-path="">ð  Ø§ÙØ±Ø¦ÙØ³ÙØ©</button>
                 ${pathParts.map((p, i) => {
                     const fullPath = pathParts.slice(0, i+1).join('/');
                     return `<button class="adm-btn" data-path="${fullPath}">${p}</button>`;
@@ -314,13 +314,13 @@ const AlaisaiFileManager = {
             <div class="admin-ui" style="direction:ltr; text-align:left;">
                 <h2 style="color:#4cc9f0;">${title}</h2>
                 <div style="margin-bottom:15px; display:flex; gap:10px;">
-                    <button class="adm-btn ${source === 'local' ? 'active' : ''}" onclick="AlaisaiFileManager.switchSource('local')">💾 محلي</button>
-                    <button class="adm-btn ${source === 'github' ? 'active' : ''}" onclick="AlaisaiFileManager.switchSource('github')">🐙 GitHub</button>
+                    <button class="adm-btn ${source === 'local' ? 'active' : ''}" onclick="AlaisaiFileManager.switchSource('local')">ð¾ ÙØ­ÙÙ</button>
+                    <button class="adm-btn ${source === 'github' ? 'active' : ''}" onclick="AlaisaiFileManager.switchSource('github')">ð GitHub</button>
                 </div>
                 ${source === 'github' ? `
                 <div style="margin-bottom:20px;">
                     <input type="text" id="fm-token" placeholder="GitHub Token" value="${this.token || ''}" style="width:70%; padding:8px;">
-                    <button class="adm-btn" id="fm-set-token" style="background:#4cc9f0;">🔑 تعيين</button>
+                    <button class="adm-btn" id="fm-set-token" style="background:#4cc9f0;">ð ØªØ¹ÙÙÙ</button>
                 </div>
                 ` : ''}
                 ${breadcrumb}
@@ -328,11 +328,11 @@ const AlaisaiFileManager = {
                     ${filesHtml}
                 </div>
                 <div id="fm-editor" style="display:none; margin-top:20px;">
-                    <h4 style="color:#4cc9f0;">📝 محرر الملف</h4>
+                    <h4 style="color:#4cc9f0;">ð ÙØ­Ø±Ø± Ø§ÙÙÙÙ</h4>
                     <textarea id="fm-editor-content" class="code-editor" style="min-height:400px;"></textarea>
                     <div style="margin-top:10px; display:flex; gap:10px;">
-                        <button class="adm-btn" id="fm-save" style="background:#4ade80;">💾 حفظ</button>
-                        <button class="adm-btn" id="fm-cancel">❌ إلغاء</button>
+                        <button class="adm-btn" id="fm-save" style="background:#4ade80;">ð¾ Ø­ÙØ¸</button>
+                        <button class="adm-btn" id="fm-cancel">â Ø¥ÙØºØ§Ø¡</button>
                     </div>
                 </div>
             </div>
@@ -349,7 +349,7 @@ const AlaisaiFileManager = {
                 const token = document.getElementById('fm-token').value;
                 if (token) {
                     this.setToken(token);
-                    alert('✅ تم تعيين التوكن');
+                    alert('â ØªÙ ØªØ¹ÙÙÙ Ø§ÙØªÙÙÙ');
                 }
             });
         }
@@ -390,9 +390,9 @@ const AlaisaiFileManager = {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const path = btn.dataset.path;
-                if (confirm(`⚠️ حذف ${path}؟`)) {
+                if (confirm(`â ï¸ Ø­Ø°Ù ${path}Ø`)) {
                     if (this.currentSource === 'github') {
-                        alert('حذف من GitHub غير مدعوم بعد');
+                        alert('Ø­Ø°Ù ÙÙ GitHub ØºÙØ± ÙØ¯Ø¹ÙÙ Ø¨Ø¹Ø¯');
                     } else {
                         await this.deleteOPFSFile(path);
                         this.openUI(this.currentPath, this.currentSource);
@@ -424,5 +424,5 @@ const AlaisaiFileManager = {
     }
 };
 
-// جعله متاحاً عمومياً
+// Ø¬Ø¹ÙÙ ÙØªØ§Ø­Ø§Ù Ø¹ÙÙÙÙØ§Ù
 window.AlaisaiFileManager = AlaisaiFileManager;
